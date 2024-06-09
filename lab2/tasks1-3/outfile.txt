@@ -1,0 +1,12 @@
+208236745.zip
+infile.txt
+LineParser.c
+LineParser.h
+LineParser.o
+makefile
+myshell
+myshell.c
+myshell.o
+outfile.txt
+/home/users/bsc/eyalbee/ESPL/lab2/tasks1-3
+/home/users/bsc/eyalbee/ESPL/lab2/tasks1-3
