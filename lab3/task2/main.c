@@ -26,6 +26,9 @@ int main(int argc, char *argv[], char *envp[])
                 system_call(SYS_WRITE, STDOUT, "\n", 1);
                 infection();
                 infector(filename);
+				system_call(SYS_WRITE, STDOUT, " ", 1);
+				system_call(SYS_WRITE, STDOUT, "VIRUS ATTACHED", 15);
+				system_call(SYS_WRITE, STDOUT, "\n", 1);
             }
         }
     }
