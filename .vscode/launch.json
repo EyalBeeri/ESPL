@@ -5,7 +5,7 @@
       "name": "(gdb) Launch",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/lab3/task1/main",
+      "program": "${workspaceFolder}/labC/myshell",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${fileDirname}",
