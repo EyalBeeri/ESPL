@@ -6,7 +6,7 @@
 
 void handler(int sig)
 {
-	printf("\nRecieved Signal : %s\n", strsignal(sig));
+	printf("Looper handling: %s\n", strsignal(sig));
 	if (sig == SIGTSTP)
 	{
 		signal(SIGTSTP, SIG_DFL);
@@ -14,6 +14,10 @@ void handler(int sig)
 	else if (sig == SIGCONT)
 	{
 		signal(SIGCONT, SIG_DFL);
+	}
+	else if (sig == SIGINT)
+	{
+		signal(SIGINT, SIG_DFL);
 	}
 	signal(sig, SIG_DFL);
 	raise(sig);
