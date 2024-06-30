@@ -39,7 +39,7 @@ char *unit_to_dec(int unit_size)
 }
 
 /* Prints the buffer to screen by converting it to text with printf */
-void print_units(FILE *output, unsigned char* buffer, int length, int unit_size, char display_mode)
+void print_units(FILE *output, unsigned char *buffer, int length, int unit_size, char display_mode)
 {
 	unsigned char *beginBuf = buffer;
 	unsigned char *end = buffer + unit_size * length;
@@ -118,7 +118,10 @@ void loadIntoMemory(state *state)
 		return;
 	}
 
-	free(state->mem_buf);
+	if (state->mem_count > 0) {
+		memset(state->mem_buf, 0, state->mem_count);
+		state->mem_count = 0;
+	}
 
 	FILE *file = fopen(state->file_name, "rb");
 	if (file == NULL)
@@ -178,59 +181,59 @@ void memoryDisplay(state *state)
 void saveIntoFile(state *state)
 {
 	char line[NAME_LEN];
-    printf("Please enter <source-address> <target-location> <length>\n");
-    fgets(line, NAME_LEN, stdin);
-    int target, sourceAddr, length;
-    if (sscanf(line, "%x %x %d\n", &sourceAddr, &target, &length) == 0)
-    {
-        fprintf(stderr, "Invalid input\n");
-        return;
-    }
-    FILE *fp = fopen(state->file_name, "r+");
-    if (fp == NULL)
-    {
-        fprintf(stderr, "Failed to open file: %s\n", state->file_name);
-        return;
-    }
-    fseek(fp, 0L, SEEK_END);
-    int res = ftell(fp);
-    if (res < target)
-        fprintf(stderr, "File is shorter than target\n");
-    else
-    {
-        fseek(fp, target, SEEK_SET);
-        fwrite(state->mem_buf + sourceAddr, state->unit_size, length, fp);
-    }
-    fclose(fp);
+	printf("Please enter <source-address> <target-location> <length>\n");
+	fgets(line, NAME_LEN, stdin);
+	int target, sourceAddr, length;
+	if (sscanf(line, "%x %x %d\n", &sourceAddr, &target, &length) == 0)
+	{
+		fprintf(stderr, "Invalid input\n");
+		return;
+	}
+	FILE *fp = fopen(state->file_name, "r+");
+	if (fp == NULL)
+	{
+		fprintf(stderr, "Failed to open file: %s\n", state->file_name);
+		return;
+	}
+	fseek(fp, 0L, SEEK_END);
+	int res = ftell(fp);
+	if (res < target)
+		fprintf(stderr, "File is shorter than target\n");
+	else
+	{
+		fseek(fp, target, SEEK_SET);
+		fwrite(state->mem_buf + sourceAddr, state->unit_size, length, fp);
+	}
+	fclose(fp);
 }
 
 void memoryModify(state *state)
 {
 	char line[NAME_LEN];
-    printf("Please enter <location> <val>\n");
-    fgets(line, NAME_LEN, stdin);
-    int location, val;
-    if (sscanf(line, "%x %x\n", &location, &val) == 0)
-    {
-        fprintf(stderr, "Invalid input\n");
-        return;
-    }
-    FILE *fp = fopen(state->file_name, "r+");
-    if (fp == NULL)
-    {
-        fprintf(stderr, "Failed to open file: %s\n", state->file_name);
-        return;
-    }
-    fseek(fp, 0L, SEEK_END);
-    int res = ftell(fp);
-    if (res < location)
-        fprintf(stderr, "File is shorter than target\n");
-    else
-    {
-        fseek(fp, location, SEEK_SET);
-        fwrite(&val, state->unit_size, 1, fp);
-    }
-    fclose(fp);
+	printf("Please enter <location> <val>\n");
+	fgets(line, NAME_LEN, stdin);
+	int location, val;
+	if (sscanf(line, "%x %x\n", &location, &val) == 0)
+	{
+		fprintf(stderr, "Invalid input\n");
+		return;
+	}
+	FILE *fp = fopen(state->file_name, "r+");
+	if (fp == NULL)
+	{
+		fprintf(stderr, "Failed to open file: %s\n", state->file_name);
+		return;
+	}
+	fseek(fp, 0L, SEEK_END);
+	int res = ftell(fp);
+	if (res < location)
+		fprintf(stderr, "File is shorter than target\n");
+	else
+	{
+		fseek(fp, location, SEEK_SET);
+		fwrite(&val, state->unit_size, 1, fp);
+	}
+	fclose(fp);
 }
 
 void quit(state *state)
@@ -239,8 +242,8 @@ void quit(state *state)
 	{
 		fprintf(stderr, "Quitting\n");
 	}
-	free(state->mem_buf);
-	free(state->file_name);
+	// free(state->mem_buf);
+	// free(state->file_name);
 	exit(0);
 }
 
