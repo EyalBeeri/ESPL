@@ -6,6 +6,8 @@
 #include <string.h>
 #include <elf.h>
 
+extern int startup(int argc, char **argv, void (*start)());
+
 void foreach_phdr(void *map_start, void (*func)(Elf32_Phdr *, int), int arg) {
     Elf32_Ehdr *elf_header = (Elf32_Ehdr *)map_start;
     Elf32_Phdr *program_headers = (Elf32_Phdr *)((char *)map_start + elf_header->e_phoff);
@@ -78,17 +80,11 @@ void load_phdr(Elf32_Phdr *phdr, int fd) {
         exit(1);
     }
 
-    // Print information about the mapped segment
-	printf("%-14s %-8s %-8s %-8s %-6s %-6s %-3s %-4s  %s\n",
-		"Type", "Offset", "VirtAddr", "PhysAddr", "FileSiz", "MemSiz", "Flg", "Align", "MmapFlags");
+    
 	print_phdr(phdr, 0);	
 }
 
 int main(int argc, char *argv[]) {
-    if (argc != 2) {
-        printf("Usage: %s <ELF file>\n", argv[0]);
-        return 1;
-    }
 
     int fd = open(argv[1], O_RDONLY);
     if (fd == -1) {
@@ -108,8 +104,19 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
+	// Print information about the mapped segment
+	printf("%-14s %-8s %-8s %-8s %-6s %-6s %-3s %-4s  %s\n",
+		"Type", "Offset", "VirtAddr", "PhysAddr", "FileSiz", "MemSiz", "Flg", "Align", "MmapFlags");
 
     foreach_phdr(map_start, load_phdr, fd);
+
+
+	// Get the entry point of the ELF executable
+    Elf32_Ehdr *elf_header = (Elf32_Ehdr *)map_start;
+    void (*entry_point)() = (void (*)())elf_header->e_entry;
+
+    // Call the startup function with the appropriate arguments
+    startup(argc - 1, argv + 1, entry_point);
 
     // Clean up
     munmap(map_start, file_size);
