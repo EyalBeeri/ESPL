@@ -5,8 +5,10 @@
       "name": "(gdb) Launch",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/labC/myshell",
-      "args": [],
+      "program": "${workspaceFolder}/lab5/task2/loader",
+      "args": [
+        "loadme"
+      ],
       "stopAtEntry": false,
       "cwd": "${fileDirname}",
       "environment": [],
